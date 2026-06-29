@@ -312,14 +312,15 @@
 <div class="toast" id="toast"><span id="toastText"></span><button id="toastAction"></button></div>
 
 <script>
-const DEVICES = ["Orea Z1","Solo","Hario Switch","Origami S","V60","Kalita Wave","Chemex","Other"];
-const FILTERS = ["Hario flat","Hario V60","Origami flat","Hario conical (Origami)","Hiflux 155","Sibarist Z1","Sibarist Fast V60","Other"];
-const PROCESSES = ["Washed","Natural","Honey","Anaerobic","Carbonic maceration","Wet-hulled","Other"];
+const DEVICES = ["Orea Z1","Solo","Hario Switch","Origami","V60","Other"];
+const FILTERS = ["Hario flat","Hario V60","Origami flat","Origami conical","Hiflux 155","Sibarist Z1","Sibarist Fast V60","Other"];
+const PROCESSES = ["Washed","Natural","Honey","Anaerobic Natural","Carbonic maceration","Wet-hulled","Other"];
 const DEVICE_FILTERS = {
   "Orea Z1": ["Sibarist Z1"],
   "Hario Switch": ["Hario V60","Sibarist Fast V60"],
   "Solo": ["Origami flat","Hiflux 155"],
-  "Origami S": ["Origami flat","Hario conical (Origami)","Hiflux 155"],
+  "Origami": ["Origami flat","Origami conical","Hiflux 155"],
+  "V60": ["Hario V60","Sibarist Fast V60"],
 };
 
 // ── PERMANENT storage key. Do NOT change in future versions. ──
@@ -333,10 +334,20 @@ let groupBy = "device";
 const $ = id => document.getElementById(id);
 
 function migrate(arr){
-  return arr.map(l => ({
-    tds:null, ey:null, eyManual:false, note:"", grind:"", origin:"", process:"",
-    date:new Date(l.id || Date.now()).toISOString(), ...l
-  }));
+  // Rename old labels to current naming so historical records stay unified.
+  const DEV_RENAME={ "Origami S":"Origami" };
+  const FILT_RENAME={ "Hario conical (Origami)":"Origami conical" };
+  const PROC_RENAME={ "Anaerobic":"Anaerobic Natural" };
+  return arr.map(l => {
+    const m={
+      tds:null, ey:null, eyManual:false, note:"", grind:"", origin:"", process:"",
+      date:new Date(l.id || Date.now()).toISOString(), ...l
+    };
+    if(DEV_RENAME[m.device]) m.device=DEV_RENAME[m.device];
+    if(FILT_RENAME[m.filter]) m.filter=FILT_RENAME[m.filter];
+    if(PROC_RENAME[m.process]) m.process=PROC_RENAME[m.process];
+    return m;
+  });
 }
 function load(){
   try { const raw=localStorage.getItem(KEY); if(raw){ logs=migrate(JSON.parse(raw)); return; } } catch(e){}
@@ -687,13 +698,20 @@ $("importFile").onchange=e=>{
 //  ANALYSIS TAB
 // ══════════════════════════════════════════════════════
 // Ode Gen 2: two detents between integers → N-S = N + S/3
+// 6-1 and 6.1 both mean "6, first detent" = 6.333; 6-2 and 6.2 = 6.667; 6 and 6.0 = 6.
 function parseGrind(g){
   if(g==null) return null;
   const s=String(g).trim();
+  // N-S notation (S = 1 or 2)
   let m=s.match(/^(\d+)\s*-\s*([12])$/);
   if(m) return parseInt(m[1],10)+parseInt(m[2],10)/3;
+  // N.S shorthand where S is 0/1/2 → treat as detent, not literal decimal
+  m=s.match(/^(\d+)\.([012])$/);
+  if(m) return parseInt(m[1],10)+parseInt(m[2],10)/3;
+  // any other plain number/decimal → literal
   m=s.match(/^(\d+(?:\.\d+)?)$/);
   if(m) return parseFloat(m[1]);
+  // leading-number fallback
   m=s.match(/(\d+(?:\.\d+)?)/);
   return m?parseFloat(m[1]):null;
 }
