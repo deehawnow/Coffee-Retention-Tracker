@@ -24,6 +24,10 @@
   .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:24px; }
   .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
   .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:12px; }
+  .date-note { display:flex; gap:12px; margin-bottom:12px; }
+  .date-note .dn-date { flex:0 0 42%; min-width:0; }
+  .date-note .dn-note { flex:1 1 auto; min-width:0; }
+  @media(max-width:430px){ .date-note { flex-direction:column; } .date-note .dn-date { flex:none; } }
   label.lbl { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:5px; display:block; }
   input, select { background:var(--bg); color:var(--text); border:1px solid var(--line);
     border-radius:6px; padding:10px 11px; font-size:16px; width:100%; font-family:inherit; outline:none; }
@@ -146,9 +150,9 @@
       </div>
       <div style="display:flex;align-items:flex-end;"><button class="toolbtn" id="eyReset" style="width:100%;visibility:hidden;">Reset to auto</button></div>
     </div>
-    <div class="grid3">
-      <div><label class="lbl">Date</label><input id="date" type="date"></div>
-      <div style="grid-column:2 / -1;"><label class="lbl">Note</label><input id="note" placeholder="Note — coffee name, temp, recipe…"></div>
+    <div class="date-note">
+      <div class="dn-date"><label class="lbl">Date</label><input id="date" type="date"></div>
+      <div class="dn-note"><label class="lbl">Note</label><input id="note" placeholder="Note — coffee name, temp, recipe…"></div>
     </div>
     <div class="footer-row" style="margin-top:14px;">
       <div class="live" id="live">Enter water and final weight</div>
@@ -166,13 +170,10 @@
 
   <div class="backup-bar" id="backupBar">
     <div class="backup-status">
-      <span id="backupDot" class="dot"></span>
-      <span id="backupText">No backup yet this session</span>
+      <span id="backupDot" class="dot ok"></span>
+      <span id="backupText">Saved on this device</span>
     </div>
-    <label class="auto-toggle">
-      <input type="checkbox" id="autoBackup" checked>
-      <span>Auto-backup on every log</span>
-    </label>
+    <span style="font-size:12px;color:var(--muted);">Tap Export for a file backup</span>
   </div>
 
   <div class="between">
@@ -351,7 +352,6 @@ addBtn.addEventListener("click",()=>{
   save();
   ["water","final","note","grind","origin","tds","ey","processOther"].forEach(id=>$(id).value="");
   eyManual=false; refreshEY(); setDateToday(); updateLive(); render();
-  if($("autoBackup").checked) downloadBackup("auto");
   showToast("Brew logged");
 });
 
@@ -459,7 +459,6 @@ $("m_save").onclick=()=>{
   l.date=$("m_date").value?new Date($("m_date").value+"T12:00:00").toISOString():l.date;
   l.note=$("m_note").value.trim();
   save(); render(); closeEdit();
-  if($("autoBackup").checked) downloadBackup("auto");
   showToast("Changes saved");
 };
 
@@ -521,24 +520,24 @@ function downloadBackup(reason){
   const stamp=new Date().toISOString().slice(0,19).replace(/[:T]/g,"-");
   a.href=url; a.download=`retention-logs-${stamp}.json`;
   document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000); markBackup(reason);
+  setTimeout(()=>URL.revokeObjectURL(url),1000); markBackup();
 }
-function markBackup(reason){
+function markBackup(){
   const t=new Date();
   try{ localStorage.setItem("retention-last-backup", t.toISOString()); }catch(e){}
-  setBackupStatus(t, reason);
+  setBackupStatus(t);
 }
-function setBackupStatus(time, reason){
+function setBackupStatus(time){
   const dot=$("backupDot"), txt=$("backupText");
-  if(!time){ dot.className="dot warn"; txt.textContent="No backup yet — tap Export"; return; }
-  const hhmm=time.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
   dot.className="dot ok";
-  txt.textContent=(reason==="auto"?"Auto-backed up ":"Backed up ")+`at ${hhmm}`;
+  if(time){
+    const hhmm=time.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+    txt.textContent=`Saved on device · exported ${hhmm}`;
+  } else {
+    txt.textContent="Saved on this device";
+  }
 }
 $("export").onclick=()=>downloadBackup("manual");
-const autoBox=$("autoBackup");
-try{ if(localStorage.getItem("retention-autobackup")==="0") autoBox.checked=false; }catch(e){}
-autoBox.onchange=()=>{ try{ localStorage.setItem("retention-autobackup", autoBox.checked?"1":"0"); }catch(e){} };
 
 $("importBtn").onclick=()=>$("importFile").click();
 $("importFile").onchange=e=>{
@@ -562,7 +561,7 @@ $("importFile").onchange=e=>{
 
 // ── Init ──
 load();
-try{ const lb=localStorage.getItem("retention-last-backup"); setBackupStatus(lb?new Date(lb):null,"manual"); }catch(e){ setBackupStatus(null); }
+try{ const lb=localStorage.getItem("retention-last-backup"); setBackupStatus(lb?new Date(lb):null); }catch(e){ setBackupStatus(null); }
 if(logs.length===0){
   const b=document.createElement("div"); b.className="banner";
   b.innerHTML=`<b>Storage is empty.</b> If this is your first run, ignore this. If you expected history here, don't re-enter anything yet — tap <b>Import file</b> and load your most recent backup, or try <b>Restore</b>.`;
