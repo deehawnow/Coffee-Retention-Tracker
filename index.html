@@ -13,9 +13,10 @@
     --bg:#1a1614; --panel:#241f1c; --panelHi:#2c2622; --line:#3a322d;
     --text:#ece4da; --muted:#8a7d72; --copper:#c87f4a; --green:#7fa86b; --amber:#d6a24a;
   }
-  * { box-sizing:border-box; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body { margin:0; background:var(--bg); color:var(--text);
-    font-family:'Inter',system-ui,-apple-system,sans-serif; padding:28px 18px; }
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    padding:max(28px,env(safe-area-inset-top)) 18px calc(40px + env(safe-area-inset-bottom)); }
   .wrap { max-width:760px; margin:0 auto; }
   .eyebrow { font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--copper); margin-bottom:6px; }
   h1 { margin:0; font-size:30px; font-weight:700; letter-spacing:-.02em; font-family:Georgia,serif; }
@@ -25,18 +26,19 @@
   .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:12px; }
   label.lbl { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:5px; display:block; }
   input, select { background:var(--bg); color:var(--text); border:1px solid var(--line);
-    border-radius:6px; padding:9px 11px; font-size:14px; width:100%; font-family:inherit; outline:none; }
+    border-radius:6px; padding:10px 11px; font-size:16px; width:100%; font-family:inherit; outline:none; }
   input:focus, select:focus { border-color:var(--copper); }
+  input[type="date"] { color-scheme:dark; min-height:42px; }
   .footer-row { display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
   .live { font-size:13px; color:var(--muted); }
   .live strong { color:var(--text); }
   button.primary { background:var(--copper); color:#1a1614; border:none; border-radius:7px;
-    padding:10px 20px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; }
+    padding:12px 22px; font-size:15px; font-weight:600; cursor:pointer; white-space:nowrap; }
   button.primary:disabled { background:var(--line); color:var(--muted); cursor:default; }
   h2.sec { margin:0; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
   .seg { display:flex; gap:4px; flex-wrap:wrap; }
   .seg button { background:transparent; color:var(--muted); border:1px solid transparent;
-    border-radius:6px; padding:5px 11px; font-size:12.5px; cursor:pointer; font-family:inherit; }
+    border-radius:6px; padding:7px 12px; font-size:12.5px; cursor:pointer; font-family:inherit; }
   .seg button.on { background:var(--panelHi); color:var(--text); border-color:var(--line); }
   .row { background:var(--panel); border:1px solid var(--line); border-radius:9px;
     padding:13px 15px; display:flex; align-items:center; justify-content:space-between; }
@@ -44,21 +46,25 @@
   .grp-sub { font-size:12px; color:var(--muted); margin-top:2px; }
   .big-pct { font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; }
   .hist-row { background:var(--panel); border:1px solid var(--line); border-radius:8px;
-    padding:11px 14px; display:flex; align-items:center; gap:14px; }
-  .hist-pct { width:52px; text-align:center; flex-shrink:0; font-size:17px; font-weight:700; font-variant-numeric:tabular-nums; }
+    padding:12px 14px; display:flex; align-items:center; gap:13px; cursor:pointer;
+    transition:border-color .12s, background .12s; }
+  .hist-row:hover { border-color:var(--copper); }
+  .hist-row:active { background:var(--panelHi); }
+  .hist-pct { width:54px; text-align:center; flex-shrink:0; font-size:17px; font-weight:700; font-variant-numeric:tabular-nums; }
   .hist-main { flex:1; min-width:0; }
+  .hist-toprow { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
   .hist-title { font-size:13.5px; font-weight:600; }
   .hist-title span { color:var(--muted); font-weight:400; }
-  .hist-sub { font-size:12px; color:var(--muted); margin-top:2px; }
-  .del { background:transparent; border:none; color:var(--muted); cursor:pointer;
-    font-size:18px; line-height:1; padding:2px 6px; flex-shrink:0; }
+  .hist-date { font-size:11px; color:var(--muted); font-weight:400; white-space:nowrap; flex-shrink:0; }
+  .hist-sub { font-size:12px; color:var(--muted); margin-top:3px; line-height:1.45; }
+  .chev { color:var(--line); font-size:20px; flex-shrink:0; }
   .empty { text-align:center; padding:40px 20px; color:var(--muted); font-size:14px;
     border:1px dashed var(--line); border-radius:10px; }
   .stack { display:grid; gap:8px; }
   .stack7 { display:grid; gap:7px; }
   .toolbtn { background:transparent; color:var(--muted); border:1px solid var(--line);
-    border-radius:6px; padding:6px 12px; font-size:12.5px; cursor:pointer; font-family:inherit; }
-  .toolbtn:hover { color:var(--text); }
+    border-radius:6px; padding:7px 13px; font-size:12.5px; cursor:pointer; font-family:inherit; }
+  .toolbtn:hover { color:var(--text); border-color:var(--muted); }
   .between { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
   .tag { font-size:9.5px; letter-spacing:.06em; padding:1px 6px; border-radius:4px; vertical-align:middle; margin-left:4px; }
   .tag.auto { background:rgba(127,168,107,.18); color:var(--green); }
@@ -68,13 +74,42 @@
     padding:10px 14px; margin-bottom:20px; flex-wrap:wrap; }
   .backup-status { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--muted); }
   .dot { width:8px; height:8px; border-radius:50%; background:var(--muted); flex-shrink:0; }
-  .dot.ok { background:var(--green); }
-  .dot.warn { background:var(--copper); }
+  .dot.ok { background:var(--green); } .dot.warn { background:var(--copper); }
   .auto-toggle { display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--muted); cursor:pointer; user-select:none; }
   .auto-toggle input { width:auto; accent-color:var(--copper); cursor:pointer; }
   .banner { background:rgba(200,127,74,.12); border:1px solid var(--copper); border-radius:9px;
     padding:12px 14px; margin-bottom:20px; font-size:13px; color:var(--text); line-height:1.5; }
   .banner b { color:var(--copper); }
+  .overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(3px);
+    display:none; align-items:flex-end; justify-content:center; z-index:50; }
+  .overlay.show { display:flex; }
+  .modal { background:var(--panel); border:1px solid var(--line); border-radius:16px 16px 0 0;
+    width:100%; max-width:560px; max-height:90vh; overflow-y:auto;
+    padding:20px 18px calc(20px + env(safe-area-inset-bottom)); }
+  @media(min-width:600px){ .overlay{align-items:center;} .modal{border-radius:16px;} }
+  .modal h3 { margin:0 0 16px; font-size:18px; font-family:Georgia,serif; }
+  .modal-actions { display:flex; gap:10px; margin-top:18px; }
+  .modal-actions button { flex:1; padding:13px; border-radius:8px; font-size:15px; font-weight:600;
+    cursor:pointer; font-family:inherit; border:none; }
+  .btn-save { background:var(--copper); color:#1a1614; }
+  .btn-cancel { background:transparent; color:var(--text); border:1px solid var(--line)!important; }
+  .modal-delete-row { margin-top:12px; text-align:center; }
+  .modal-delete-row button { background:none; border:none; color:#d66; font-size:13px;
+    cursor:pointer; font-family:inherit; text-decoration:underline; }
+  .toast { position:fixed; left:50%; transform:translateX(-50%) translateY(160%);
+    bottom:calc(20px + env(safe-area-inset-bottom)); background:var(--panelHi);
+    border:1px solid var(--line); border-radius:10px; padding:13px 16px; z-index:60;
+    display:flex; align-items:center; gap:14px; box-shadow:0 8px 24px rgba(0,0,0,.4);
+    transition:transform .25s cubic-bezier(.2,.8,.2,1); max-width:90vw; }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+  .toast span { font-size:13.5px; color:var(--text); }
+  .toast button { background:var(--copper); color:#1a1614; border:none; border-radius:6px;
+    padding:7px 14px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap; }
+  .restore-item { display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:11px 13px; background:var(--bg); border:1px solid var(--line); border-radius:8px; margin-bottom:7px; }
+  .restore-item .ri-meta { font-size:12.5px; color:var(--muted); }
+  .restore-item button { background:var(--copper); color:#1a1614; border:none; border-radius:6px;
+    padding:7px 13px; font-size:12.5px; font-weight:600; cursor:pointer; font-family:inherit; }
 </style>
 </head>
 <body>
@@ -111,8 +146,11 @@
       </div>
       <div style="display:flex;align-items:flex-end;"><button class="toolbtn" id="eyReset" style="width:100%;visibility:hidden;">Reset to auto</button></div>
     </div>
-    <input id="note" placeholder="Note — coffee name, temp, recipe…" style="margin-bottom:14px;">
-    <div class="footer-row">
+    <div class="grid3">
+      <div><label class="lbl">Date</label><input id="date" type="date"></div>
+      <div style="grid-column:2 / -1;"><label class="lbl">Note</label><input id="note" placeholder="Note — coffee name, temp, recipe…"></div>
+    </div>
+    <div class="footer-row" style="margin-top:14px;">
       <div class="live" id="live">Enter water and final weight</div>
       <button class="primary" id="add" disabled>Log brew</button>
     </div>
@@ -126,7 +164,7 @@
     <div class="stack" id="avgList"></div>
   </div>
 
-  <div id="backupBar" class="backup-bar">
+  <div class="backup-bar" id="backupBar">
     <div class="backup-status">
       <span id="backupDot" class="dot"></span>
       <span id="backupText">No backup yet this session</span>
@@ -140,83 +178,136 @@
   <div class="between">
     <h2 class="sec" id="histHead">History</h2>
     <div class="seg">
-      <button class="toolbtn" id="export">Export JSON</button>
-      <button class="toolbtn" id="importBtn">Import JSON</button>
+      <button class="toolbtn" id="restoreBtn">Restore</button>
+      <button class="toolbtn" id="export">Export</button>
+      <button class="toolbtn" id="importBtn">Import file</button>
       <input type="file" id="importFile" accept="application/json" style="display:none;">
     </div>
   </div>
   <div id="histArea"></div>
 </div>
 
+<div class="overlay" id="editOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">Edit brew</h3>
+    <div class="grid2">
+      <div><label class="lbl">Device</label><select id="m_device"></select></div>
+      <div><label class="lbl">Filter</label><select id="m_filter"></select></div>
+    </div>
+    <div class="grid3">
+      <div><label class="lbl">Origin</label><input id="m_origin"></div>
+      <div><label class="lbl">Process</label><input id="m_process"></div>
+      <div><label class="lbl">Grind</label><input id="m_grind"></div>
+    </div>
+    <div class="grid3">
+      <div><label class="lbl">Dose (g)</label><input id="m_dose" inputmode="decimal"></div>
+      <div><label class="lbl">Water in (g)</label><input id="m_water" inputmode="decimal"></div>
+      <div><label class="lbl">Final (g)</label><input id="m_final" inputmode="decimal"></div>
+    </div>
+    <div class="grid3">
+      <div><label class="lbl">TDS %</label><input id="m_tds" inputmode="decimal"></div>
+      <div><label class="lbl">EY %</label><input id="m_ey" inputmode="decimal"></div>
+      <div><label class="lbl">Date</label><input id="m_date" type="date"></div>
+    </div>
+    <div><label class="lbl">Note</label><input id="m_note"></div>
+    <div class="live" id="m_live" style="margin-top:14px;"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="m_cancel">Cancel</button>
+      <button class="btn-save" id="m_save">Save changes</button>
+    </div>
+    <div class="modal-delete-row"><button id="m_delete">Delete this brew</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="restoreOverlay">
+  <div class="modal">
+    <h3>Restore a snapshot</h3>
+    <p class="lede" style="margin-top:0;">The app saves a snapshot before every change. Roll back to any recent point. Your current state is snapshotted first, so this is itself undoable.</p>
+    <div id="restoreList"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="r_cancel" style="flex:1;">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastText"></span><button id="toastAction"></button></div>
+
 <script>
 const DEVICES = ["Orea Z1","Solo","Hario Switch","Origami S","V60","Kalita Wave","Chemex","Other"];
 const FILTERS = ["Hario flat","Hario V60","Origami flat","Hario conical (Origami)","Hiflux 155","Sibarist Z1","Sibarist Fast V60","Other"];
 const PROCESSES = ["Washed","Natural","Honey","Anaerobic","Carbonic maceration","Wet-hulled","Other"];
-
-// Which filters each device allows. Devices not listed allow all FILTERS.
 const DEVICE_FILTERS = {
   "Orea Z1": ["Sibarist Z1"],
   "Hario Switch": ["Hario V60","Sibarist Fast V60"],
   "Solo": ["Origami flat","Hiflux 155"],
   "Origami S": ["Origami flat","Hario conical (Origami)","Hiflux 155"],
 };
+
+// ── PERMANENT storage key. Do NOT change in future versions. ──
 const KEY = "retention-logs-v2";
+const LEGACY_KEYS = ["retention-logs-v1"];
+const SNAP_KEY = "retention-snapshots";
+const MAX_SNAPS = 12;
 
 let logs = [];
 let groupBy = "device";
+const $ = id => document.getElementById(id);
 
-function load() {
-  try { const raw = localStorage.getItem(KEY); if (raw) logs = JSON.parse(raw); } catch(e){}
+function migrate(arr){
+  return arr.map(l => ({
+    tds:null, ey:null, eyManual:false, note:"", grind:"", origin:"", process:"",
+    date:new Date(l.id || Date.now()).toISOString(), ...l
+  }));
 }
-function save() {
-  try { localStorage.setItem(KEY, JSON.stringify(logs)); } catch(e){ console.error(e); }
+function load(){
+  try { const raw=localStorage.getItem(KEY); if(raw){ logs=migrate(JSON.parse(raw)); return; } } catch(e){}
+  for(const lk of LEGACY_KEYS){
+    try { const raw=localStorage.getItem(lk);
+      if(raw){ const p=JSON.parse(raw); if(Array.isArray(p)&&p.length){ logs=migrate(p); save(); return; } } } catch(e){}
+  }
 }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(logs)); }catch(e){ console.error(e); } }
+
+function getSnaps(){ try{ const r=localStorage.getItem(SNAP_KEY); return r?JSON.parse(r):[]; }catch(e){ return []; } }
+function snapshot(label){
+  try { const snaps=getSnaps();
+    snaps.unshift({ t:new Date().toISOString(), label, data:logs });
+    localStorage.setItem(SNAP_KEY, JSON.stringify(snaps.slice(0, MAX_SNAPS)));
+  } catch(e){ console.error(e); }
+}
+
 function pct(w,f){ w=parseFloat(w); f=parseFloat(f); if(!w||isNaN(f)||w<=0) return null; return ((w-f)/w)*100; }
 function retColor(p){ return p>=25?"var(--amber)":p>=15?"var(--green)":"var(--copper)"; }
+function fmtDate(iso){ if(!iso) return ""; const d=new Date(iso); return isNaN(d)?"":d.toLocaleDateString([], {month:"short",day:"numeric",year:"numeric"}); }
+function todayStr(){ const t=new Date(); const off=t.getTimezoneOffset()*60000; return new Date(t-off).toISOString().slice(0,10); }
 
-function fill(id, arr){ const s=document.getElementById(id); s.innerHTML = arr.map(o=>`<option>${o}</option>`).join(""); }
-fill("device",DEVICES); fill("filter",FILTERS); fill("process",PROCESSES);
+function fillSel(id, arr){ const s=$(id); s.innerHTML=arr.map(o=>`<option>${o}</option>`).join(""); }
+fillSel("device",DEVICES); fillSel("filter",FILTERS); fillSel("process",PROCESSES);
+fillSel("m_device",DEVICES);
 
-// Constrain filter options to the selected device
-function refreshFilters(){
-  const dev = document.getElementById("device").value;
-  const allowed = DEVICE_FILTERS[dev] || FILTERS;
-  const sel = document.getElementById("filter");
-  const prev = sel.value;
-  sel.innerHTML = allowed.map(o=>`<option>${o}</option>`).join("");
-  if(allowed.includes(prev)) sel.value = prev;
+function refreshFilters(devId, filtId){
+  const dev=$(devId).value; const allowed=DEVICE_FILTERS[dev]||FILTERS;
+  const sel=$(filtId); const prev=sel.value;
+  sel.innerHTML=allowed.map(o=>`<option>${o}</option>`).join("");
+  if(allowed.includes(prev)) sel.value=prev;
 }
-document.getElementById("device").addEventListener("change", refreshFilters);
-refreshFilters();
+$("device").addEventListener("change", ()=>refreshFilters("device","filter"));
+$("m_device").addEventListener("change", ()=>refreshFilters("m_device","m_filter"));
+refreshFilters("device","filter");
 
-// Show free-text process field when "Other" is chosen
-function refreshProcessOther(){
-  const isOther = document.getElementById("process").value === "Other";
-  document.getElementById("processOtherRow").style.display = isOther ? "grid" : "none";
-}
-document.getElementById("process").addEventListener("change", refreshProcessOther);
+function refreshProcessOther(){ $("processOtherRow").style.display = $("process").value==="Other" ? "grid" : "none"; }
+$("process").addEventListener("change", refreshProcessOther);
 refreshProcessOther();
 
-const $ = id => document.getElementById(id);
-const live = $("live"), addBtn = $("add");
-
-// EY auto-calc: EY% = (beverage weight × TDS%) / dose. Final weight = beverage weight.
-let eyManual = false;
-function calcEY(){
-  const f=parseFloat($("final").value), t=parseFloat($("tds").value), d=parseFloat($("dose").value);
-  if(!f || !t || !d) return null;
-  return (f * t) / d;
-}
+let eyManual=false;
+function calcEY(f,t,d){ f=parseFloat(f); t=parseFloat(t); d=parseFloat(d); if(!f||!t||!d) return null; return (f*t)/d; }
 function refreshEY(){
   const tag=$("eyTag"), reset=$("eyReset"), eyInput=$("ey");
-  if(eyManual){
-    tag.textContent="manual"; tag.className="tag manual";
-    reset.style.visibility="visible";
-  } else {
-    const auto=calcEY();
-    eyInput.value = auto===null ? "" : auto.toFixed(2);
-    tag.textContent = auto===null ? "" : "auto";
-    tag.className = auto===null ? "tag" : "tag auto";
+  if(eyManual){ tag.textContent="manual"; tag.className="tag manual"; reset.style.visibility="visible"; }
+  else {
+    const auto=calcEY($("final").value,$("tds").value,$("dose").value);
+    eyInput.value = auto===null?"":auto.toFixed(2);
+    tag.textContent = auto===null?"":"auto"; tag.className = auto===null?"tag":"tag auto";
     reset.style.visibility="hidden";
   }
 }
@@ -224,45 +315,45 @@ $("ey").addEventListener("input",()=>{ eyManual=true; refreshEY(); });
 $("eyReset").addEventListener("click",()=>{ eyManual=false; refreshEY(); });
 ["final","tds","dose"].forEach(id=>$(id).addEventListener("input",()=>{ if(!eyManual) refreshEY(); }));
 
+const live=$("live"), addBtn=$("add");
 function updateLive(){
   const w=$("water").value, f=$("final").value, d=$("dose").value;
-  const p = pct(w,f);
+  const p=pct(w,f);
   if(p===null){ live.textContent="Enter water and final weight"; addBtn.disabled=true; return; }
   addBtn.disabled=false;
   const held=(parseFloat(w)-parseFloat(f)).toFixed(1);
   let html=`Retained <strong>${held}g</strong> · <span style="color:${retColor(p)};font-weight:700;font-size:16px;">${p.toFixed(1)}%</span>`;
   if(d) html+=` · <strong>${((parseFloat(w)-parseFloat(f))/parseFloat(d)).toFixed(2)}</strong> g/g dose`;
-  const ey = parseFloat($("ey").value);
+  const ey=parseFloat($("ey").value);
   if(!isNaN(ey)) html+=` · <strong>${ey.toFixed(1)}%</strong> EY`;
   live.innerHTML=html;
 }
 ["water","final","dose","tds","ey"].forEach(id=>$(id).addEventListener("input",updateLive));
 
+function setDateToday(){ $("date").value=todayStr(); }
+
 addBtn.addEventListener("click",()=>{
-  const p = pct($("water").value,$("final").value);
+  const p=pct($("water").value,$("final").value);
   if(p===null) return;
+  snapshot("before add");
   const w=parseFloat($("water").value), f=parseFloat($("final").value), d=$("dose").value;
-  let proc = $("process").value;
-  if(proc === "Other"){ proc = $("processOther").value.trim() || "Other"; }
-  const tdsVal = $("tds").value ? parseFloat($("tds").value) : null;
-  const eyVal = $("ey").value ? parseFloat($("ey").value) : null;
+  let proc=$("process").value;
+  if(proc==="Other") proc=$("processOther").value.trim()||"Other";
+  const tdsVal=$("tds").value?parseFloat($("tds").value):null;
+  const eyVal=$("ey").value?parseFloat($("ey").value):null;
+  const dateISO = $("date").value ? new Date($("date").value+"T12:00:00").toISOString() : new Date().toISOString();
   logs.unshift({
-    id:Date.now(), date:new Date().toISOString(),
-    device:$("device").value, filter:$("filter").value,
-    origin:$("origin").value.trim(), process:proc,
-    grind:$("grind").value.trim(), dose:d?parseFloat(d):null,
-    water:w, final:f, retained:w-f, pct:p,
-    tds:tdsVal, ey:eyVal, eyManual:eyManual && eyVal!==null,
-    note:$("note").value.trim()
+    id:Date.now(), date:dateISO, device:$("device").value, filter:$("filter").value,
+    origin:$("origin").value.trim(), process:proc, grind:$("grind").value.trim(),
+    dose:d?parseFloat(d):null, water:w, final:f, retained:w-f, pct:p,
+    tds:tdsVal, ey:eyVal, eyManual:eyManual&&eyVal!==null, note:$("note").value.trim()
   });
   save();
-  $("water").value=""; $("final").value=""; $("note").value=""; $("grind").value=""; $("origin").value="";
-  $("processOther").value=""; $("tds").value=""; $("ey").value=""; eyManual=false; refreshEY();
-  updateLive(); render();
+  ["water","final","note","grind","origin","tds","ey","processOther"].forEach(id=>$(id).value="");
+  eyManual=false; refreshEY(); setDateToday(); updateLive(); render();
   if($("autoBackup").checked) downloadBackup("auto");
+  showToast("Brew logged");
 });
-
-function remove(id){ logs=logs.filter(l=>l.id!==id); save(); render(); }
 
 function buildGroups(){
   const m={};
@@ -280,36 +371,30 @@ function buildGroups(){
     return {k,n:arr.length,avg,avgRet,avgPerG};
   }).sort((a,b)=>b.avg-a.avg);
 }
-
 const SEGS=[["device","Device"],["filter","Filter"],["origin","Origin"],["process","Process"],["combo","Dev+Filt"]];
 function renderSeg(){
-  $("seg").innerHTML = SEGS.map(([v,l])=>`<button data-v="${v}" class="${groupBy===v?'on':''}">${l}</button>`).join("");
+  $("seg").innerHTML=SEGS.map(([v,l])=>`<button data-v="${v}" class="${groupBy===v?'on':''}">${l}</button>`).join("");
   $("seg").querySelectorAll("button").forEach(b=>b.onclick=()=>{ groupBy=b.dataset.v; render(); });
 }
-
 function render(){
   renderSeg();
-  const avgBlock=$("avgBlock");
-  if(logs.length===0){ avgBlock.style.display="none"; }
+  if(logs.length===0){ $("avgBlock").style.display="none"; }
   else {
-    avgBlock.style.display="block";
-    $("avgList").innerHTML = buildGroups().map(g=>`
+    $("avgBlock").style.display="block";
+    $("avgList").innerHTML=buildGroups().map(g=>`
       <div class="row">
-        <div>
-          <div class="grp-title">${g.k}</div>
-          <div class="grp-sub">${g.n} brew${g.n>1?'s':''} · avg ${g.avgRet.toFixed(1)}g held${g.avgPerG!==null?` · ${g.avgPerG.toFixed(2)} g/g dose`:''}</div>
-        </div>
+        <div><div class="grp-title">${g.k}</div>
+        <div class="grp-sub">${g.n} brew${g.n>1?'s':''} · avg ${g.avgRet.toFixed(1)}g held${g.avgPerG!==null?` · ${g.avgPerG.toFixed(2)} g/g dose`:''}</div></div>
         <div class="big-pct" style="color:${retColor(g.avg)}">${g.avg.toFixed(1)}%</div>
       </div>`).join("");
   }
-
-  $("histHead").textContent = logs.length ? `History · ${logs.length}` : "History";
+  $("histHead").textContent = logs.length?`History · ${logs.length}`:"History";
   const area=$("histArea");
   if(logs.length===0){
     area.innerHTML=`<div class="empty">No brews logged yet. Weigh your water and your poured cup, and the held-back water shows up here.</div>`;
     return;
   }
-  area.innerHTML = `<div class="stack7">` + logs.map(l=>{
+  area.innerHTML=`<div class="stack7">`+logs.map(l=>{
     const meta=[l.origin,l.process].filter(Boolean).join(" · ");
     let sub="";
     if(meta) sub+=meta+(l.grind?" · ":"");
@@ -319,47 +404,141 @@ function render(){
     if(l.tds!=null) sub+=` · ${l.tds}% TDS`;
     if(l.ey!=null) sub+=` · ${l.ey.toFixed(1)}% EY${l.eyManual?'*':''}`;
     if(l.note) sub+=` · ${l.note}`;
-    return `<div class="hist-row">
+    return `<div class="hist-row" data-id="${l.id}">
       <div class="hist-pct" style="color:${retColor(l.pct)}">${l.pct.toFixed(1)}%</div>
       <div class="hist-main">
-        <div class="hist-title">${l.device} · <span>${l.filter}</span></div>
+        <div class="hist-toprow">
+          <div class="hist-title">${l.device} · <span>${l.filter}</span></div>
+          <div class="hist-date">${fmtDate(l.date)}</div>
+        </div>
         <div class="hist-sub">${sub}</div>
       </div>
-      <button class="del" data-id="${l.id}">×</button>
+      <div class="chev">›</div>
     </div>`;
-  }).join("") + `</div>`;
-  area.querySelectorAll(".del").forEach(b=>b.onclick=()=>remove(Number(b.dataset.id)));
+  }).join("")+`</div>`;
+  area.querySelectorAll(".hist-row").forEach(r=>r.onclick=()=>openEdit(Number(r.dataset.id)));
 }
 
-// ── Backup system ─────────────────────────────────────
+let editingId=null;
+function mLive(){
+  const p=pct($("m_water").value,$("m_final").value);
+  if(p===null){ $("m_live").textContent="Enter water and final weight"; return; }
+  const held=(parseFloat($("m_water").value)-parseFloat($("m_final").value)).toFixed(1);
+  $("m_live").innerHTML=`Retained <strong>${held}g</strong> · <span style="color:${retColor(p)};font-weight:700;">${p.toFixed(1)}%</span>`;
+}
+["m_water","m_final"].forEach(id=>$(id).addEventListener("input",mLive));
+function openEdit(id){
+  const l=logs.find(x=>x.id===id); if(!l) return;
+  editingId=id;
+  $("m_device").value=l.device;
+  refreshFilters("m_device","m_filter");
+  $("m_filter").value=l.filter;
+  $("m_origin").value=l.origin||""; $("m_process").value=l.process||""; $("m_grind").value=l.grind||"";
+  $("m_dose").value=l.dose??""; $("m_water").value=l.water; $("m_final").value=l.final;
+  $("m_tds").value=l.tds??""; $("m_ey").value=l.ey??"";
+  $("m_date").value = l.date ? new Date(l.date).toISOString().slice(0,10) : todayStr();
+  $("m_note").value=l.note||"";
+  mLive();
+  $("editOverlay").classList.add("show");
+}
+function closeEdit(){ $("editOverlay").classList.remove("show"); editingId=null; }
+$("m_cancel").onclick=closeEdit;
+$("editOverlay").onclick=e=>{ if(e.target===$("editOverlay")) closeEdit(); };
+$("m_save").onclick=()=>{
+  const l=logs.find(x=>x.id===editingId); if(!l) return;
+  const w=parseFloat($("m_water").value), f=parseFloat($("m_final").value);
+  if(isNaN(w)||isNaN(f)||w<=0){ alert("Water and final weight are required."); return; }
+  snapshot("before edit");
+  l.device=$("m_device").value; l.filter=$("m_filter").value;
+  l.origin=$("m_origin").value.trim(); l.process=$("m_process").value.trim();
+  l.grind=$("m_grind").value.trim();
+  l.dose=$("m_dose").value?parseFloat($("m_dose").value):null;
+  l.water=w; l.final=f; l.retained=w-f; l.pct=pct(w,f);
+  l.tds=$("m_tds").value?parseFloat($("m_tds").value):null;
+  l.ey=$("m_ey").value?parseFloat($("m_ey").value):null;
+  l.date=$("m_date").value?new Date($("m_date").value+"T12:00:00").toISOString():l.date;
+  l.note=$("m_note").value.trim();
+  save(); render(); closeEdit();
+  if($("autoBackup").checked) downloadBackup("auto");
+  showToast("Changes saved");
+};
+
+let lastDeleted=null;
+function doDelete(id){
+  const idx=logs.findIndex(x=>x.id===id); if(idx<0) return;
+  snapshot("before delete");
+  lastDeleted={ entry:logs[idx], index:idx };
+  logs.splice(idx,1); save(); render(); closeEdit();
+  if($("autoBackup").checked) downloadBackup("auto");
+  showToast("Brew deleted", "Undo", ()=>{
+    if(lastDeleted){ logs.splice(lastDeleted.index,0,lastDeleted.entry); save(); render(); lastDeleted=null; showToast("Restored"); }
+  });
+}
+$("m_delete").onclick=()=>{
+  if(confirm("Delete this brew? You'll get an undo option, and it's also recoverable from Restore.")) doDelete(editingId);
+};
+
+let toastTimer=null;
+function showToast(msg, actionLabel, actionFn){
+  const t=$("toast"); $("toastText").textContent=msg;
+  const btn=$("toastAction");
+  if(actionLabel){ btn.style.display=""; btn.textContent=actionLabel; btn.onclick=()=>{ hideToast(); actionFn&&actionFn(); }; }
+  else btn.style.display="none";
+  t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer=setTimeout(hideToast, actionLabel?6000:2200);
+}
+function hideToast(){ $("toast").classList.remove("show"); }
+
+$("restoreBtn").onclick=()=>{
+  const snaps=getSnaps();
+  const list=$("restoreList");
+  if(snaps.length===0){ list.innerHTML=`<p class="lede">No snapshots yet. They're created automatically before each change.</p>`; }
+  else {
+    list.innerHTML=snaps.map((s,i)=>{
+      const when=new Date(s.t).toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"});
+      return `<div class="restore-item">
+        <div><div style="font-size:13px;">${when}</div>
+        <div class="ri-meta">${s.data.length} brew${s.data.length===1?'':'s'} · ${s.label||'snapshot'}</div></div>
+        <button data-i="${i}">Restore</button></div>`;
+    }).join("");
+    list.querySelectorAll("button").forEach(b=>b.onclick=()=>{
+      const i=Number(b.dataset.i); const s=getSnaps()[i]; if(!s) return;
+      if(confirm(`Restore to this snapshot (${s.data.length} brews)? Your current state is saved first, so you can undo this too.`)){
+        snapshot("before restore");
+        logs=migrate(s.data); save(); render();
+        $("restoreOverlay").classList.remove("show");
+        showToast("Snapshot restored");
+      }
+    });
+  }
+  $("restoreOverlay").classList.add("show");
+};
+$("r_cancel").onclick=()=>$("restoreOverlay").classList.remove("show");
+$("restoreOverlay").onclick=e=>{ if(e.target===$("restoreOverlay")) $("restoreOverlay").classList.remove("show"); };
+
 function downloadBackup(reason){
   const blob=new Blob([JSON.stringify(logs,null,2)],{type:"application/json"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
+  const url=URL.createObjectURL(blob); const a=document.createElement("a");
   const stamp=new Date().toISOString().slice(0,19).replace(/[:T]/g,"-");
   a.href=url; a.download=`retention-logs-${stamp}.json`;
   document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1000);
-  markBackup(reason);
+  setTimeout(()=>URL.revokeObjectURL(url),1000); markBackup(reason);
 }
 function markBackup(reason){
   const t=new Date();
-  try { localStorage.setItem("retention-last-backup", t.toISOString()); } catch(e){}
+  try{ localStorage.setItem("retention-last-backup", t.toISOString()); }catch(e){}
   setBackupStatus(t, reason);
 }
 function setBackupStatus(time, reason){
   const dot=$("backupDot"), txt=$("backupText");
-  if(!time){ dot.className="dot warn"; txt.textContent="No backup yet — tap Export JSON"; return; }
-  const hhmm=time.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+  if(!time){ dot.className="dot warn"; txt.textContent="No backup yet — tap Export"; return; }
+  const hhmm=time.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
   dot.className="dot ok";
-  txt.textContent = (reason==="auto"?"Auto-backed up ":"Backed up ")+`at ${hhmm}`;
+  txt.textContent=(reason==="auto"?"Auto-backed up ":"Backed up ")+`at ${hhmm}`;
 }
-
 $("export").onclick=()=>downloadBackup("manual");
-
 const autoBox=$("autoBackup");
-// restore toggle preference
-try { const pref=localStorage.getItem("retention-autobackup"); if(pref==="0") autoBox.checked=false; } catch(e){}
+try{ if(localStorage.getItem("retention-autobackup")==="0") autoBox.checked=false; }catch(e){}
 autoBox.onchange=()=>{ try{ localStorage.setItem("retention-autobackup", autoBox.checked?"1":"0"); }catch(e){} };
 
 $("importBtn").onclick=()=>$("importFile").click();
@@ -369,37 +548,28 @@ $("importFile").onchange=e=>{
   r.onload=()=>{
     try {
       const data=JSON.parse(r.result);
-      if(!Array.isArray(data)) throw new Error("not an array");
+      if(!Array.isArray(data)) throw new Error("not array");
+      snapshot("before import");
       const existing=new Set(logs.map(l=>l.id));
       const merged=[...logs];
       for(const d of data){ if(!existing.has(d.id)) merged.push(d); }
       merged.sort((a,b)=>b.id-a.id);
-      logs=merged; save(); render();
-      alert(`Imported. You now have ${logs.length} brew${logs.length>1?'s':''} logged.`);
+      logs=migrate(merged); save(); render();
+      showToast(`Imported — ${logs.length} total`);
     } catch(err){ alert("Couldn't read that file — expected an exported retention log."); }
   };
-  r.readAsText(file);
-  e.target.value="";
+  r.readAsText(file); e.target.value="";
 };
 
-// ── Load with safety guard ────────────────────────────
+// ── Init ──
 load();
-// Restore last-backup display
-try {
-  const lb=localStorage.getItem("retention-last-backup");
-  setBackupStatus(lb?new Date(lb):null, "manual");
-} catch(e){ setBackupStatus(null); }
-
-// If storage came back empty, offer a one-tap import so a stray empty
-// load never tempts you to re-log over a recoverable backup.
+try{ const lb=localStorage.getItem("retention-last-backup"); setBackupStatus(lb?new Date(lb):null,"manual"); }catch(e){ setBackupStatus(null); }
 if(logs.length===0){
-  const b=document.createElement("div");
-  b.className="banner";
-  b.innerHTML=`<b>Storage is empty.</b> If this is your first run, ignore this. If you expected history here, don't re-enter anything yet — tap <b>Import JSON</b> above and load your most recent backup file first.`;
-  document.querySelector(".wrap").insertBefore(b, document.getElementById("backupBar"));
+  const b=document.createElement("div"); b.className="banner";
+  b.innerHTML=`<b>Storage is empty.</b> If this is your first run, ignore this. If you expected history here, don't re-enter anything yet — tap <b>Import file</b> and load your most recent backup, or try <b>Restore</b>.`;
+  document.querySelector(".wrap").insertBefore(b, $("backupBar"));
 }
-
-render(); updateLive();
+render(); refreshEY(); updateLive(); setDateToday();
 </script>
 </body>
 </html>
