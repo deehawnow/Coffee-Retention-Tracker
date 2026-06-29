@@ -469,7 +469,6 @@ function doDelete(id){
   snapshot("before delete");
   lastDeleted={ entry:logs[idx], index:idx };
   logs.splice(idx,1); save(); render(); closeEdit();
-  if($("autoBackup").checked) downloadBackup("auto");
   showToast("Brew deleted", "Undo", ()=>{
     if(lastDeleted){ logs.splice(lastDeleted.index,0,lastDeleted.entry); save(); render(); lastDeleted=null; showToast("Restored"); }
   });
