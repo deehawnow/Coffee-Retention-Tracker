@@ -24,15 +24,24 @@
   .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:24px; }
   .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
   .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:12px; }
-  .date-note { display:flex; gap:12px; margin-bottom:12px; }
-  .date-note .dn-date { flex:0 0 42%; min-width:0; }
-  .date-note .dn-note { flex:1 1 auto; min-width:0; }
-  @media(max-width:430px){ .date-note { flex-direction:column; } .date-note .dn-date { flex:none; } }
+  .date-note { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:12px; }
+  .date-note .dn-date { flex:1 1 140px; min-width:0; }
+  .date-note .dn-note { flex:3 1 200px; min-width:0; }
+  @media(max-width:480px){
+    .date-note { flex-direction:column; }
+    .date-note .dn-date, .date-note .dn-note { flex:1 1 auto; width:100%; }
+  }
   label.lbl { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:5px; display:block; }
   input, select { background:var(--bg); color:var(--text); border:1px solid var(--line);
     border-radius:6px; padding:10px 11px; font-size:16px; width:100%; font-family:inherit; outline:none; }
   input:focus, select:focus { border-color:var(--copper); }
-  input[type="date"] { color-scheme:dark; min-height:42px; }
+  input[type="date"] {
+    color-scheme:dark; min-height:42px;
+    -webkit-appearance:none; appearance:none;
+    width:100%; max-width:100%; min-width:0;
+  }
+  /* iOS Safari renders the date value in a sub-element that can overflow; clamp it */
+  input[type="date"]::-webkit-date-and-time-value { text-align:left; margin:0; }
   .footer-row { display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
   .live { font-size:13px; color:var(--muted); }
   .live strong { color:var(--text); }
@@ -104,6 +113,13 @@
   .gap-item { font-size:12.5px; color:var(--muted); padding:7px 0; border-bottom:1px solid var(--line); }
   .gap-item:last-child { border-bottom:none; }
   .gap-item b { color:var(--text); }
+  .filterbar { background:var(--panel); border:1px solid var(--line); border-radius:9px;
+    padding:11px 13px; margin-bottom:14px; display:flex; flex-direction:column; gap:9px; }
+  .fb-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .fb-label { font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); width:42px; flex-shrink:0; }
+  .fb-sel { background:var(--bg); color:var(--text); border:1px solid var(--line); border-radius:6px;
+    padding:7px 9px; font-size:13px; font-family:inherit; flex:1 1 auto; min-width:0; max-width:33%; }
+  @media(max-width:480px){ .fb-sel { max-width:none; flex:1 1 45%; } }
   .overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(3px);
     display:none; align-items:flex-end; justify-content:center; z-index:50; }
   .overlay.show { display:flex; }
@@ -212,6 +228,21 @@
       <input type="file" id="importFile" accept="application/json" style="display:none;">
     </div>
   </div>
+
+  <div class="filterbar" id="filterbar">
+    <div class="fb-row">
+      <span class="fb-label">Sort</span>
+      <div class="seg" id="sortSeg"></div>
+    </div>
+    <div class="fb-row">
+      <span class="fb-label">Filter</span>
+      <select id="fDevice" class="fb-sel"><option value="">All devices</option></select>
+      <select id="fFilter" class="fb-sel"><option value="">All filters</option></select>
+      <select id="fStyle" class="fb-sel"><option value="">All beans</option></select>
+      <button class="toolbtn" id="fClear" style="display:none;">Clear</button>
+    </div>
+  </div>
+
   <div id="histArea"></div>
   </div><!-- /tab-log -->
 
@@ -423,8 +454,46 @@ function renderSeg(){
   $("seg").innerHTML=SEGS.map(([v,l])=>`<button data-v="${v}" class="${groupBy===v?'on':''}">${l}</button>`).join("");
   $("seg").querySelectorAll("button").forEach(b=>b.onclick=()=>{ groupBy=b.dataset.v; render(); });
 }
+
+// ── History sort + filter ─────────────────────────────
+let sortMode="date-desc";
+const SORTS=[["date-desc","Newest"],["date-asc","Oldest"],["ret-desc","Retention ↓"],["ey-desc","EY ↓"]];
+function renderSortSeg(){
+  $("sortSeg").innerHTML=SORTS.map(([v,l])=>`<button data-v="${v}" class="${sortMode===v?'on':''}">${l}</button>`).join("");
+  $("sortSeg").querySelectorAll("button").forEach(b=>b.onclick=()=>{ sortMode=b.dataset.v; render(); });
+}
+function styleKey(l){ return [l.origin||"—", l.process||"—"].join(" · "); }
+function populateFilters(){
+  const dSel=$("fDevice"), fSel=$("fFilter"), sSel=$("fStyle");
+  const dVal=dSel.value, fVal=fSel.value, sVal=sSel.value;
+  const devices=[...new Set(logs.map(l=>l.device))].sort();
+  const filters=[...new Set(logs.map(l=>l.filter))].sort();
+  const styles=[...new Set(logs.map(styleKey))].sort();
+  dSel.innerHTML=`<option value="">All devices</option>`+devices.map(d=>`<option${d===dVal?' selected':''}>${d}</option>`).join("");
+  fSel.innerHTML=`<option value="">All filters</option>`+filters.map(f=>`<option${f===fVal?' selected':''}>${f}</option>`).join("");
+  sSel.innerHTML=`<option value="">All beans</option>`+styles.map(s=>`<option${s===sVal?' selected':''}>${s}</option>`).join("");
+}
+function getView(){
+  let v=logs.slice();
+  const dVal=$("fDevice").value, fVal=$("fFilter").value, sVal=$("fStyle").value;
+  if(dVal) v=v.filter(l=>l.device===dVal);
+  if(fVal) v=v.filter(l=>l.filter===fVal);
+  if(sVal) v=v.filter(l=>styleKey(l)===sVal);
+  const dateOf=l=>{ const d=new Date(l.date||l.id); return isNaN(d)?0:d.getTime(); };
+  if(sortMode==="date-desc") v.sort((a,b)=>dateOf(b)-dateOf(a));
+  else if(sortMode==="date-asc") v.sort((a,b)=>dateOf(a)-dateOf(b));
+  else if(sortMode==="ret-desc") v.sort((a,b)=>b.pct-a.pct);
+  else if(sortMode==="ey-desc") v.sort((a,b)=>(b.ey??-1)-(a.ey??-1));
+  $("fClear").style.display = (dVal||fVal||sVal)?"":"none";
+  return v;
+}
+["fDevice","fFilter","fStyle"].forEach(id=>$(id).addEventListener("change",render));
+$("fClear").onclick=()=>{ $("fDevice").value=""; $("fFilter").value=""; $("fStyle").value=""; render(); };
+
 function render(){
   renderSeg();
+  renderSortSeg();
+  populateFilters();
   if(logs.length===0){ $("avgBlock").style.display="none"; }
   else {
     $("avgBlock").style.display="block";
@@ -435,13 +504,20 @@ function render(){
         <div class="big-pct" style="color:${retColor(g.avg)}">${g.avg.toFixed(1)}%</div>
       </div>`).join("");
   }
-  $("histHead").textContent = logs.length?`History · ${logs.length}`:"History";
+  $("filterbar").style.display = logs.length?"flex":"none";
+  const view=getView();
+  $("histHead").textContent = logs.length ? (view.length===logs.length?`History · ${logs.length}`:`History · ${view.length} of ${logs.length}`) : "History";
   const area=$("histArea");
   if(logs.length===0){
     area.innerHTML=`<div class="empty">No brews logged yet. Weigh your water and your poured cup, and the held-back water shows up here.</div>`;
     return;
   }
-  area.innerHTML=`<div class="stack7">`+logs.map(l=>{
+  if(view.length===0){
+    area.innerHTML=`<div class="empty">No brews match these filters. <span style="color:var(--copper);cursor:pointer;" id="clearInline">Clear filters</span></div>`;
+    const ci=document.getElementById("clearInline"); if(ci) ci.onclick=()=>$("fClear").click();
+    return;
+  }
+  area.innerHTML=`<div class="stack7">`+view.map(l=>{
     const meta=[l.origin,l.process].filter(Boolean).join(" · ");
     let sub="";
     if(meta) sub+=meta+(l.grind?" · ":"");
