@@ -810,7 +810,9 @@ try{ const lb=localStorage.getItem("retention-last-backup"); setBackupStatus(lb?
 if(logs.length===0){
   const b=document.createElement("div"); b.className="banner";
   b.innerHTML=`<b>Storage is empty.</b> If this is your first run, ignore this. If you expected history here, don't re-enter anything yet — tap <b>Import file</b> and load your most recent backup, or try <b>Restore</b>.`;
-  document.querySelector(".wrap").insertBefore(b, $("backupBar"));
+  const anchor=$("backupBar");
+  if(anchor && anchor.parentNode){ anchor.parentNode.insertBefore(b, anchor); }
+  else { $("tab-log").prepend(b); }
 }
 render(); refreshEY(); updateLive(); setDateToday(); setTarget(20.25);
 </script>
