@@ -84,6 +84,26 @@
   .banner { background:rgba(200,127,74,.12); border:1px solid var(--copper); border-radius:9px;
     padding:12px 14px; margin-bottom:20px; font-size:13px; color:var(--text); line-height:1.5; }
   .banner b { color:var(--copper); }
+  .tabs { display:flex; gap:6px; margin-bottom:18px; border-bottom:1px solid var(--line); }
+  .tab { background:none; border:none; color:var(--muted); font-family:inherit; font-size:15px;
+    font-weight:600; padding:10px 16px; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; }
+  .tab.on { color:var(--copper); border-bottom-color:var(--copper); }
+  .a-card { background:var(--panel); border:1px solid var(--line); border-radius:11px; padding:16px 18px; margin-bottom:16px; }
+  .a-card h3 { margin:0 0 4px; font-size:15px; font-family:Georgia,serif; }
+  .a-card .sub { font-size:12px; color:var(--muted); margin-bottom:12px; line-height:1.45; }
+  .takeaway { background:var(--bg); border-left:3px solid var(--copper); border-radius:0 7px 7px 0;
+    padding:10px 13px; font-size:13px; line-height:1.5; margin-top:12px; }
+  .takeaway.thin { border-left-color:var(--muted); }
+  .takeaway b { color:var(--text); }
+  .repflag { display:inline-block; font-size:10px; letter-spacing:.04em; padding:1px 7px; border-radius:4px;
+    background:rgba(138,125,114,.2); color:var(--muted); margin-left:6px; vertical-align:middle; }
+  .repflag.ok { background:rgba(127,168,107,.18); color:var(--green); }
+  .a-empty { text-align:center; padding:30px 18px; color:var(--muted); font-size:13.5px;
+    border:1px dashed var(--line); border-radius:10px; line-height:1.5; }
+  .chart-wrap { width:100%; overflow:visible; }
+  .gap-item { font-size:12.5px; color:var(--muted); padding:7px 0; border-bottom:1px solid var(--line); }
+  .gap-item:last-child { border-bottom:none; }
+  .gap-item b { color:var(--text); }
   .overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(3px);
     display:none; align-items:flex-end; justify-content:center; z-index:50; }
   .overlay.show { display:flex; }
@@ -118,11 +138,18 @@
 </head>
 <body>
 <div class="wrap">
-  <header style="margin-bottom:26px;">
+  <header style="margin-bottom:20px;">
     <div class="eyebrow">Bench Log</div>
     <h1>Retention Tracker</h1>
-    <p class="lede">Log water in and beverage out. Retention is what the bed and filter held back — water that never reached the cup. Track it across devices, filters, origins, processes, and grind to tighten extraction math.</p>
   </header>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="log">Log</button>
+    <button class="tab" data-tab="analysis">Analysis</button>
+  </div>
+
+  <div id="tab-log">
+  <p class="lede" style="margin:-4px 0 22px;">Log water in and beverage out. Retention is what the bed and filter held back — water that never reached the cup.</p>
 
   <div class="card">
     <div class="grid2">
@@ -186,6 +213,26 @@
     </div>
   </div>
   <div id="histArea"></div>
+  </div><!-- /tab-log -->
+
+  <div id="tab-analysis" style="display:none;">
+    <p class="lede" style="margin:-4px 0 18px;">How your levers move your outcomes. Trends draw at 2+ brews and show their sample size — treat thin ones as hypotheses to test, not laws.</p>
+
+    <div class="card" style="padding:16px 18px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <label class="lbl" style="margin-bottom:2px;">Target EY band</label>
+          <div style="font-size:15px;font-weight:600;"><span id="tgtLo">20.0</span>%–<span id="tgtHi">20.5</span>%</div>
+        </div>
+        <div style="flex:1;min-width:180px;">
+          <input type="range" id="tgtSlider" min="17" max="23" step="0.25" value="20.25" style="width:100%;accent-color:var(--copper);">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);"><span>17%</span><span>center: <span id="tgtCenter">20.25</span>%</span><span>23%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="analysisBody"></div>
+  </div>
 </div>
 
 <div class="overlay" id="editOverlay">
@@ -417,6 +464,7 @@ function render(){
     </div>`;
   }).join("")+`</div>`;
   area.querySelectorAll(".hist-row").forEach(r=>r.onclick=()=>openEdit(Number(r.dataset.id)));
+  if(currentTab==="analysis") renderAnalysis();
 }
 
 let editingId=null;
@@ -559,6 +607,203 @@ $("importFile").onchange=e=>{
   r.readAsText(file); e.target.value="";
 };
 
+// ══════════════════════════════════════════════════════
+//  ANALYSIS TAB
+// ══════════════════════════════════════════════════════
+// Ode Gen 2: two detents between integers → N-S = N + S/3
+function parseGrind(g){
+  if(g==null) return null;
+  const s=String(g).trim();
+  let m=s.match(/^(\d+)\s*-\s*([12])$/);
+  if(m) return parseInt(m[1],10)+parseInt(m[2],10)/3;
+  m=s.match(/^(\d+(?:\.\d+)?)$/);
+  if(m) return parseFloat(m[1]);
+  m=s.match(/(\d+(?:\.\d+)?)/);
+  return m?parseFloat(m[1]):null;
+}
+function mean(a){ return a.reduce((s,x)=>s+x,0)/a.length; }
+function sd(a){ if(a.length<2) return null; const m=mean(a); return Math.sqrt(a.reduce((s,x)=>s+(x-m)**2,0)/(a.length-1)); }
+// least-squares slope of y on x
+function linfit(pts){
+  const n=pts.length; if(n<2) return null;
+  const mx=mean(pts.map(p=>p.x)), my=mean(pts.map(p=>p.y));
+  let num=0, den=0;
+  for(const p of pts){ num+=(p.x-mx)*(p.y-my); den+=(p.x-mx)**2; }
+  if(den===0) return null;
+  const slope=num/den; return { slope, intercept:my-slope*mx };
+}
+
+let TGT=20.25, TGT_LO=20.0, TGT_HI=20.5;
+function setTarget(v){ TGT=v; TGT_LO=+(v-0.25).toFixed(2); TGT_HI=+(v+0.25).toFixed(2);
+  $("tgtLo").textContent=TGT_LO.toFixed(1); $("tgtHi").textContent=TGT_HI.toFixed(1); $("tgtCenter").textContent=v.toFixed(2);
+}
+$("tgtSlider").addEventListener("input", e=>{ setTarget(parseFloat(e.target.value)); if(currentTab==="analysis") renderAnalysis(); });
+
+// SVG scatter with optional trend line. xs/ys numeric; band = [lo,hi] horizontal ref for y.
+function scatterSVG(pts, opts){
+  opts=opts||{};
+  const W=opts.w||320, H=opts.h||180, pad={l:38,r:12,t:12,b:30};
+  if(pts.length===0) return "";
+  const xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
+  let xmin=Math.min(...xs), xmax=Math.max(...xs), ymin=Math.min(...ys), ymax=Math.max(...ys);
+  if(opts.band){ ymin=Math.min(ymin,opts.band[0]); ymax=Math.max(ymax,opts.band[1]); }
+  if(xmin===xmax){ xmin-=0.5; xmax+=0.5; }
+  if(ymin===ymax){ ymin-=1; ymax+=1; }
+  const xr=xmax-xmin, yr=ymax-ymin; xmin-=xr*0.08; xmax+=xr*0.08; ymin-=yr*0.12; ymax+=yr*0.12;
+  const sx=x=>pad.l+(x-xmin)/(xmax-xmin)*(W-pad.l-pad.r);
+  const sy=y=>H-pad.b-(y-ymin)/(ymax-ymin)*(H-pad.t-pad.b);
+  let svg=`<svg viewBox="0 0 ${W} ${H}" class="chart-wrap" xmlns="http://www.w3.org/2000/svg" style="font-family:Inter,sans-serif;">`;
+  // target band
+  if(opts.band){
+    const yA=sy(opts.band[1]), yB=sy(opts.band[0]);
+    svg+=`<rect x="${pad.l}" y="${yA}" width="${W-pad.l-pad.r}" height="${yB-yA}" fill="rgba(200,127,74,.10)"/>`;
+    svg+=`<line x1="${pad.l}" y1="${sy(TGT)}" x2="${W-pad.r}" y2="${sy(TGT)}" stroke="var(--copper)" stroke-width="1" stroke-dasharray="3,3" opacity=".6"/>`;
+  }
+  // axes
+  svg+=`<line x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${H-pad.b}" stroke="var(--line)"/>`;
+  svg+=`<line x1="${pad.l}" y1="${H-pad.b}" x2="${W-pad.r}" y2="${H-pad.b}" stroke="var(--line)"/>`;
+  // y labels (min/max)
+  svg+=`<text x="${pad.l-5}" y="${sy(ymin)+3}" text-anchor="end" font-size="9" fill="var(--muted)">${ymin.toFixed(1)}</text>`;
+  svg+=`<text x="${pad.l-5}" y="${sy(ymax)+3}" text-anchor="end" font-size="9" fill="var(--muted)">${ymax.toFixed(1)}</text>`;
+  // x labels
+  svg+=`<text x="${pad.l}" y="${H-pad.b+13}" text-anchor="start" font-size="9" fill="var(--muted)">${xmin.toFixed(1)}</text>`;
+  svg+=`<text x="${W-pad.r}" y="${H-pad.b+13}" text-anchor="end" font-size="9" fill="var(--muted)">${xmax.toFixed(1)}</text>`;
+  if(opts.xlabel) svg+=`<text x="${(W)/2}" y="${H-4}" text-anchor="middle" font-size="9.5" fill="var(--muted)">${opts.xlabel}</text>`;
+  if(opts.ylabel) svg+=`<text x="11" y="${H/2}" text-anchor="middle" font-size="9.5" fill="var(--muted)" transform="rotate(-90 11 ${H/2})">${opts.ylabel}</text>`;
+  // trend line
+  const fit=linfit(pts);
+  if(fit && pts.length>=2){
+    svg+=`<line x1="${sx(xmin)}" y1="${sy(fit.slope*xmin+fit.intercept)}" x2="${sx(xmax)}" y2="${sy(fit.slope*xmax+fit.intercept)}" stroke="var(--green)" stroke-width="1.5" opacity=".7"/>`;
+  }
+  // points
+  for(const p of pts){
+    svg+=`<circle cx="${sx(p.x)}" cy="${sy(p.y)}" r="4" fill="var(--copper)" stroke="var(--bg)" stroke-width="1"/>`;
+  }
+  svg+=`</svg>`;
+  return svg;
+}
+
+let currentTab="log";
+function switchTab(t){
+  currentTab=t;
+  $("tab-log").style.display = t==="log"?"":"none";
+  $("tab-analysis").style.display = t==="analysis"?"":"none";
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on", b.dataset.tab===t));
+  if(t==="analysis") renderAnalysis();
+}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+
+function withEY(){ return logs.filter(l=>l.ey!=null); }
+
+function renderAnalysis(){
+  const body=$("analysisBody");
+  const all=logs;
+  if(all.length<2){
+    body.innerHTML=`<div class="a-empty">Log at least 2 brews to see trends. You have ${all.length}.<br>The more you vary one thing at a time — grind, ratio, filter — the clearer the patterns get.</div>`;
+    return;
+  }
+  let html="";
+
+  // ── 1. Grind → EY, per device ──
+  html+=`<div class="a-card"><h3>Grind → Extraction</h3>
+    <div class="sub">Within each device, how grind setting moves EY. The slope tells you how much extraction you gain per grind step — your main dialing lever. Target band shaded.</div>`;
+  const byDev={};
+  for(const l of withEY()){ const g=parseGrind(l.grind); if(g==null) continue; (byDev[l.device]=byDev[l.device]||[]).push({x:g,y:l.ey,l}); }
+  const devsWithGrindVar=Object.entries(byDev).filter(([d,pts])=>pts.length>=2 && new Set(pts.map(p=>p.x)).size>=2);
+  if(devsWithGrindVar.length===0){
+    html+=`<div class="a-empty">No device yet has 2+ brews at different grinds with EY logged. Vary grind on one device to learn its slope.</div>`;
+  } else {
+    for(const [dev,pts] of devsWithGrindVar){
+      const fit=linfit(pts);
+      const per3 = fit ? fit.slope/3 : null; // EY change per labeled grind step (1/3 integer)
+      html+=`<div style="margin-top:14px;"><div style="font-size:13px;font-weight:600;margin-bottom:6px;">${dev} <span class="repflag ${pts.length>=3?'ok':''}">${pts.length} brews</span></div>`;
+      html+=scatterSVG(pts,{band:[TGT_LO,TGT_HI],xlabel:"grind (Ode units)",ylabel:"EY %"});
+      if(fit){
+        const dir = fit.slope>0 ? "finer→coarser raises" : "finer→coarser lowers";
+        html+=`<div class="takeaway ${pts.length<3?'thin':''}">On <b>${dev}</b>, EY moves about <b>${(Math.abs(per3)).toFixed(2)}% per grind step</b> (${fit.slope>0?'+':''}${per3.toFixed(2)} per detent; coarser = ${fit.slope>0?'higher':'lower'} EY). ${pts.length<3?'Only '+pts.length+' brews — directional hint, keep logging.':''}</div>`;
+      }
+      html+=`</div>`;
+    }
+  }
+  html+=`</div>`;
+
+  // ── 2. Ratio → EY & Retention ──
+  html+=`<div class="a-card"><h3>Ratio → Extraction & Retention</h3>
+    <div class="sub">Water-to-dose ratio vs. EY. Pushing ratio up can lift extraction or just dilute — retention eats some of that water, so watch both.</div>`;
+  const ratPts=withEY().filter(l=>l.dose).map(l=>({x:l.water/l.dose,y:l.ey,l}));
+  if(ratPts.length<2 || new Set(ratPts.map(p=>p.x.toFixed(1))).size<2){
+    html+=`<div class="a-empty">Need 2+ brews at different ratios with dose + EY. Vary your ratio to map this.</div>`;
+  } else {
+    html+=scatterSVG(ratPts,{band:[TGT_LO,TGT_HI],xlabel:"water : dose",ylabel:"EY %"});
+    const fit=linfit(ratPts);
+    if(fit) html+=`<div class="takeaway ${ratPts.length<3?'thin':''}">Across all brews, each +1 in ratio shifts EY about <b>${fit.slope>0?'+':''}${fit.slope.toFixed(2)}%</b>. ${Math.abs(fit.slope)<0.2?'Nearly flat — ratio is not your main EY lever in this range.':(fit.slope>0?'Higher ratio is extracting more, not just diluting.':'Higher ratio is diluting faster than it extracts.')}</div>`;
+  }
+  html+=`</div>`;
+
+  // ── 3. Retention → EY ──
+  html+=`<div class="a-card"><h3>Retention → Extraction</h3>
+    <div class="sub">Retention isn't a goal — it's a mechanism (contact time, bypass). This shows what your held-water levels are doing to EY.</div>`;
+  const retPts=withEY().map(l=>({x:l.pct,y:l.ey,l}));
+  if(retPts.length>=2 && new Set(retPts.map(p=>p.x.toFixed(1))).size>=2){
+    html+=scatterSVG(retPts,{band:[TGT_LO,TGT_HI],xlabel:"retention %",ylabel:"EY %"});
+    const fit=linfit(retPts);
+    if(fit) html+=`<div class="takeaway">Higher retention trends toward <b>${fit.slope>0?'higher':'lower'} EY</b> (${fit.slope>0?'+':''}${fit.slope.toFixed(2)}% per retention point). ${Math.abs(fit.slope)<0.15?'Weak link — retention is not strongly steering extraction here.':'Worth noting when choosing filters.'}</div>`;
+  } else html+=`<div class="a-empty">Need more EY-logged brews with varied retention.</div>`;
+  html+=`</div>`;
+
+  // ── 4. Bean style → landing zone ──
+  html+=`<div class="a-card"><h3>Bean style → where it lands</h3>
+    <div class="sub">For each origin/process, average EY and which setup pulled closest to target. 2+ brews needed for a real read.</div>`;
+  const styleMap={};
+  for(const l of withEY()){
+    const k=[l.origin||"—",l.process||"—"].join(" · ");
+    (styleMap[k]=styleMap[k]||[]).push(l);
+  }
+  const styleRows=Object.entries(styleMap).sort((a,b)=>b[1].length-a[1].length);
+  if(styleRows.length===0){ html+=`<div class="a-empty">No EY data yet.</div>`; }
+  else {
+    for(const [k,arr] of styleRows){
+      const eys=arr.map(l=>l.ey);
+      const avg=mean(eys); const spread=sd(eys);
+      const best=arr.slice().sort((a,b)=>Math.abs(a.ey-TGT)-Math.abs(b.ey-TGT))[0];
+      const inBand=arr.filter(l=>l.ey>=TGT_LO&&l.ey<=TGT_HI).length;
+      html+=`<div style="padding:9px 0;border-bottom:1px solid var(--line);">
+        <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;">
+          <span style="font-size:13.5px;font-weight:600;">${k}</span>
+          <span class="repflag ${arr.length>=2?'ok':''}">${arr.length} brew${arr.length>1?'s':''}</span>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:3px;">
+          avg EY <b style="color:${avg>=TGT_LO&&avg<=TGT_HI?'var(--green)':'var(--text)'}">${avg.toFixed(1)}%</b>${spread!=null?` · spread ±${spread.toFixed(2)}`:''} · ${inBand}/${arr.length} in band<br>
+          closest to target: <b style="color:var(--text)">${best.device} + ${best.filter}</b> @ ${best.ey.toFixed(1)}%
+        </div></div>`;
+    }
+  }
+  html+=`</div>`;
+
+  // ── 5. What to test next ──
+  html+=`<div class="a-card"><h3>What to test next</h3>
+    <div class="sub">Gaps where one more brew would teach you the most.</div>`;
+  const gaps=[];
+  // devices with EY data but no grind variation
+  for(const [dev,pts] of Object.entries(byDev)){
+    if(pts.length>=1 && new Set(pts.map(p=>p.x)).size<2)
+      gaps.push(`<b>${dev}</b>: vary grind — only one grind setting logged, so its EY slope is unknown.`);
+  }
+  // styles with single brew
+  for(const [k,arr] of styleRows){
+    if(arr.length===1) gaps.push(`<b>${k}</b>: just 1 brew — a second would turn a guess into a trend.`);
+  }
+  // devices never paired with EY
+  const devsLogged=new Set(logs.map(l=>l.device));
+  const devsEY=new Set(withEY().map(l=>l.device));
+  for(const d of devsLogged){ if(!devsEY.has(d)) gaps.push(`<b>${d}</b>: no TDS/EY logged yet — add a refractometer reading to bring it into the analysis.`); }
+  if(gaps.length===0) gaps.push("Good coverage so far — keep replicating your best setups to tighten the trends.");
+  html+=gaps.slice(0,8).map(g=>`<div class="gap-item">${g}</div>`).join("");
+  html+=`</div>`;
+
+  body.innerHTML=html;
+}
+
 // ── Init ──
 load();
 try{ const lb=localStorage.getItem("retention-last-backup"); setBackupStatus(lb?new Date(lb):null); }catch(e){ setBackupStatus(null); }
@@ -567,7 +812,7 @@ if(logs.length===0){
   b.innerHTML=`<b>Storage is empty.</b> If this is your first run, ignore this. If you expected history here, don't re-enter anything yet — tap <b>Import file</b> and load your most recent backup, or try <b>Restore</b>.`;
   document.querySelector(".wrap").insertBefore(b, $("backupBar"));
 }
-render(); refreshEY(); updateLive(); setDateToday();
+render(); refreshEY(); updateLive(); setDateToday(); setTarget(20.25);
 </script>
 </body>
 </html>
