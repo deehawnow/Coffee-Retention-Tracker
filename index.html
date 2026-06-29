@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Retention">
+<meta name="theme-color" content="#1a1614">
+<title>Retention Tracker</title>
+<style>
+  :root {
+    --bg:#1a1614; --panel:#241f1c; --panelHi:#2c2622; --line:#3a322d;
+    --text:#ece4da; --muted:#8a7d72; --copper:#c87f4a; --green:#7fa86b; --amber:#d6a24a;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text);
+    font-family:'Inter',system-ui,-apple-system,sans-serif; padding:28px 18px; }
+  .wrap { max-width:760px; margin:0 auto; }
+  .eyebrow { font-size:11px; letter-spacing:.22em; text-transform:uppercase; color:var(--copper); margin-bottom:6px; }
+  h1 { margin:0; font-size:30px; font-weight:700; letter-spacing:-.02em; font-family:Georgia,serif; }
+  .lede { color:var(--muted); font-size:13.5px; margin-top:8px; max-width:540px; line-height:1.5; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px; margin-bottom:24px; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+  .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:12px; }
+  label.lbl { font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:5px; display:block; }
+  input, select { background:var(--bg); color:var(--text); border:1px solid var(--line);
+    border-radius:6px; padding:9px 11px; font-size:14px; width:100%; font-family:inherit; outline:none; }
+  input:focus, select:focus { border-color:var(--copper); }
+  .footer-row { display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; }
+  .live { font-size:13px; color:var(--muted); }
+  .live strong { color:var(--text); }
+  button.primary { background:var(--copper); color:#1a1614; border:none; border-radius:7px;
+    padding:10px 20px; font-size:14px; font-weight:600; cursor:pointer; white-space:nowrap; }
+  button.primary:disabled { background:var(--line); color:var(--muted); cursor:default; }
+  h2.sec { margin:0; font-size:14px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+  .seg { display:flex; gap:4px; flex-wrap:wrap; }
+  .seg button { background:transparent; color:var(--muted); border:1px solid transparent;
+    border-radius:6px; padding:5px 11px; font-size:12.5px; cursor:pointer; font-family:inherit; }
+  .seg button.on { background:var(--panelHi); color:var(--text); border-color:var(--line); }
+  .row { background:var(--panel); border:1px solid var(--line); border-radius:9px;
+    padding:13px 15px; display:flex; align-items:center; justify-content:space-between; }
+  .grp-title { font-size:14.5px; font-weight:600; }
+  .grp-sub { font-size:12px; color:var(--muted); margin-top:2px; }
+  .big-pct { font-size:22px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .hist-row { background:var(--panel); border:1px solid var(--line); border-radius:8px;
+    padding:11px 14px; display:flex; align-items:center; gap:14px; }
+  .hist-pct { width:52px; text-align:center; flex-shrink:0; font-size:17px; font-weight:700; font-variant-numeric:tabular-nums; }
+  .hist-main { flex:1; min-width:0; }
+  .hist-title { font-size:13.5px; font-weight:600; }
+  .hist-title span { color:var(--muted); font-weight:400; }
+  .hist-sub { font-size:12px; color:var(--muted); margin-top:2px; }
+  .del { background:transparent; border:none; color:var(--muted); cursor:pointer;
+    font-size:18px; line-height:1; padding:2px 6px; flex-shrink:0; }
+  .empty { text-align:center; padding:40px 20px; color:var(--muted); font-size:14px;
+    border:1px dashed var(--line); border-radius:10px; }
+  .stack { display:grid; gap:8px; }
+  .stack7 { display:grid; gap:7px; }
+  .toolbtn { background:transparent; color:var(--muted); border:1px solid var(--line);
+    border-radius:6px; padding:6px 12px; font-size:12.5px; cursor:pointer; font-family:inherit; }
+  .toolbtn:hover { color:var(--text); }
+  .between { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px; }
+  .tag { font-size:9.5px; letter-spacing:.06em; padding:1px 6px; border-radius:4px; vertical-align:middle; margin-left:4px; }
+  .tag.auto { background:rgba(127,168,107,.18); color:var(--green); }
+  .tag.manual { background:rgba(200,127,74,.18); color:var(--copper); }
+  .backup-bar { display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background:var(--panel); border:1px solid var(--line); border-radius:9px;
+    padding:10px 14px; margin-bottom:20px; flex-wrap:wrap; }
+  .backup-status { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--muted); }
+  .dot { width:8px; height:8px; border-radius:50%; background:var(--muted); flex-shrink:0; }
+  .dot.ok { background:var(--green); }
+  .dot.warn { background:var(--copper); }
+  .auto-toggle { display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--muted); cursor:pointer; user-select:none; }
+  .auto-toggle input { width:auto; accent-color:var(--copper); cursor:pointer; }
+  .banner { background:rgba(200,127,74,.12); border:1px solid var(--copper); border-radius:9px;
+    padding:12px 14px; margin-bottom:20px; font-size:13px; color:var(--text); line-height:1.5; }
+  .banner b { color:var(--copper); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header style="margin-bottom:26px;">
+    <div class="eyebrow">Bench Log</div>
+    <h1>Retention Tracker</h1>
+    <p class="lede">Log water in and beverage out. Retention is what the bed and filter held back — water that never reached the cup. Track it across devices, filters, origins, processes, and grind to tighten extraction math.</p>
+  </header>
+
+  <div class="card">
+    <div class="grid2">
+      <div><label class="lbl">Device</label><select id="device"></select></div>
+      <div><label class="lbl">Filter</label><select id="filter"></select></div>
+    </div>
+    <div class="grid3">
+      <div><label class="lbl">Origin</label><input id="origin" placeholder="e.g. Ethiopia, Huila"></div>
+      <div><label class="lbl">Process</label><select id="process"></select></div>
+      <div><label class="lbl">Grind</label><input id="grind" placeholder="e.g. Ode 4.2"></div>
+    </div>
+    <div class="grid3" id="processOtherRow" style="display:none;">
+      <div style="grid-column:1 / -1;"><label class="lbl">Process — specify</label><input id="processOther" placeholder="Type the process"></div>
+    </div>
+    <div class="grid3">
+      <div><label class="lbl">Dose (g) · opt</label><input id="dose" inputmode="decimal" placeholder="16"></div>
+      <div><label class="lbl">Water in (g)</label><input id="water" inputmode="decimal" placeholder="240"></div>
+      <div><label class="lbl">Final weight (g)</label><input id="final" inputmode="decimal" placeholder="195"></div>
+    </div>
+    <div class="grid3">
+      <div><label class="lbl">TDS %</label><input id="tds" inputmode="decimal" placeholder="1.35"></div>
+      <div>
+        <label class="lbl">EY % <span id="eyTag" class="tag"></span></label>
+        <input id="ey" inputmode="decimal" placeholder="auto from TDS">
+      </div>
+      <div style="display:flex;align-items:flex-end;"><button class="toolbtn" id="eyReset" style="width:100%;visibility:hidden;">Reset to auto</button></div>
+    </div>
+    <input id="note" placeholder="Note — coffee name, temp, recipe…" style="margin-bottom:14px;">
+    <div class="footer-row">
+      <div class="live" id="live">Enter water and final weight</div>
+      <button class="primary" id="add" disabled>Log brew</button>
+    </div>
+  </div>
+
+  <div id="avgBlock" style="margin-bottom:24px; display:none;">
+    <div class="between">
+      <h2 class="sec">Averages</h2>
+      <div class="seg" id="seg"></div>
+    </div>
+    <div class="stack" id="avgList"></div>
+  </div>
+
+  <div id="backupBar" class="backup-bar">
+    <div class="backup-status">
+      <span id="backupDot" class="dot"></span>
+      <span id="backupText">No backup yet this session</span>
+    </div>
+    <label class="auto-toggle">
+      <input type="checkbox" id="autoBackup" checked>
+      <span>Auto-backup on every log</span>
+    </label>
+  </div>
+
+  <div class="between">
+    <h2 class="sec" id="histHead">History</h2>
+    <div class="seg">
+      <button class="toolbtn" id="export">Export JSON</button>
+      <button class="toolbtn" id="importBtn">Import JSON</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none;">
+    </div>
+  </div>
+  <div id="histArea"></div>
+</div>
+
+<script>
+const DEVICES = ["Orea Z1","Solo","Hario Switch","Origami S","V60","Kalita Wave","Chemex","Other"];
+const FILTERS = ["Hario flat","Hario V60","Origami flat","Hario conical (Origami)","Hiflux 155","Sibarist Z1","Sibarist Fast V60","Other"];
+const PROCESSES = ["Washed","Natural","Honey","Anaerobic","Carbonic maceration","Wet-hulled","Other"];
+
+// Which filters each device allows. Devices not listed allow all FILTERS.
+const DEVICE_FILTERS = {
+  "Orea Z1": ["Sibarist Z1"],
+  "Hario Switch": ["Hario V60","Sibarist Fast V60"],
+  "Solo": ["Origami flat","Hiflux 155"],
+  "Origami S": ["Origami flat","Hario conical (Origami)","Hiflux 155"],
+};
+const KEY = "retention-logs-v2";
+
+let logs = [];
+let groupBy = "device";
+
+function load() {
+  try { const raw = localStorage.getItem(KEY); if (raw) logs = JSON.parse(raw); } catch(e){}
+}
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(logs)); } catch(e){ console.error(e); }
+}
+function pct(w,f){ w=parseFloat(w); f=parseFloat(f); if(!w||isNaN(f)||w<=0) return null; return ((w-f)/w)*100; }
+function retColor(p){ return p>=25?"var(--amber)":p>=15?"var(--green)":"var(--copper)"; }
+
+function fill(id, arr){ const s=document.getElementById(id); s.innerHTML = arr.map(o=>`<option>${o}</option>`).join(""); }
+fill("device",DEVICES); fill("filter",FILTERS); fill("process",PROCESSES);
+
+// Constrain filter options to the selected device
+function refreshFilters(){
+  const dev = document.getElementById("device").value;
+  const allowed = DEVICE_FILTERS[dev] || FILTERS;
+  const sel = document.getElementById("filter");
+  const prev = sel.value;
+  sel.innerHTML = allowed.map(o=>`<option>${o}</option>`).join("");
+  if(allowed.includes(prev)) sel.value = prev;
+}
+document.getElementById("device").addEventListener("change", refreshFilters);
+refreshFilters();
+
+// Show free-text process field when "Other" is chosen
+function refreshProcessOther(){
+  const isOther = document.getElementById("process").value === "Other";
+  document.getElementById("processOtherRow").style.display = isOther ? "grid" : "none";
+}
+document.getElementById("process").addEventListener("change", refreshProcessOther);
+refreshProcessOther();
+
+const $ = id => document.getElementById(id);
+const live = $("live"), addBtn = $("add");
+
+// EY auto-calc: EY% = (beverage weight × TDS%) / dose. Final weight = beverage weight.
+let eyManual = false;
+function calcEY(){
+  const f=parseFloat($("final").value), t=parseFloat($("tds").value), d=parseFloat($("dose").value);
+  if(!f || !t || !d) return null;
+  return (f * t) / d;
+}
+function refreshEY(){
+  const tag=$("eyTag"), reset=$("eyReset"), eyInput=$("ey");
+  if(eyManual){
+    tag.textContent="manual"; tag.className="tag manual";
+    reset.style.visibility="visible";
+  } else {
+    const auto=calcEY();
+    eyInput.value = auto===null ? "" : auto.toFixed(2);
+    tag.textContent = auto===null ? "" : "auto";
+    tag.className = auto===null ? "tag" : "tag auto";
+    reset.style.visibility="hidden";
+  }
+}
+$("ey").addEventListener("input",()=>{ eyManual=true; refreshEY(); });
+$("eyReset").addEventListener("click",()=>{ eyManual=false; refreshEY(); });
+["final","tds","dose"].forEach(id=>$(id).addEventListener("input",()=>{ if(!eyManual) refreshEY(); }));
+
+function updateLive(){
+  const w=$("water").value, f=$("final").value, d=$("dose").value;
+  const p = pct(w,f);
+  if(p===null){ live.textContent="Enter water and final weight"; addBtn.disabled=true; return; }
+  addBtn.disabled=false;
+  const held=(parseFloat(w)-parseFloat(f)).toFixed(1);
+  let html=`Retained <strong>${held}g</strong> · <span style="color:${retColor(p)};font-weight:700;font-size:16px;">${p.toFixed(1)}%</span>`;
+  if(d) html+=` · <strong>${((parseFloat(w)-parseFloat(f))/parseFloat(d)).toFixed(2)}</strong> g/g dose`;
+  const ey = parseFloat($("ey").value);
+  if(!isNaN(ey)) html+=` · <strong>${ey.toFixed(1)}%</strong> EY`;
+  live.innerHTML=html;
+}
+["water","final","dose","tds","ey"].forEach(id=>$(id).addEventListener("input",updateLive));
+
+addBtn.addEventListener("click",()=>{
+  const p = pct($("water").value,$("final").value);
+  if(p===null) return;
+  const w=parseFloat($("water").value), f=parseFloat($("final").value), d=$("dose").value;
+  let proc = $("process").value;
+  if(proc === "Other"){ proc = $("processOther").value.trim() || "Other"; }
+  const tdsVal = $("tds").value ? parseFloat($("tds").value) : null;
+  const eyVal = $("ey").value ? parseFloat($("ey").value) : null;
+  logs.unshift({
+    id:Date.now(), date:new Date().toISOString(),
+    device:$("device").value, filter:$("filter").value,
+    origin:$("origin").value.trim(), process:proc,
+    grind:$("grind").value.trim(), dose:d?parseFloat(d):null,
+    water:w, final:f, retained:w-f, pct:p,
+    tds:tdsVal, ey:eyVal, eyManual:eyManual && eyVal!==null,
+    note:$("note").value.trim()
+  });
+  save();
+  $("water").value=""; $("final").value=""; $("note").value=""; $("grind").value=""; $("origin").value="";
+  $("processOther").value=""; $("tds").value=""; $("ey").value=""; eyManual=false; refreshEY();
+  updateLive(); render();
+  if($("autoBackup").checked) downloadBackup("auto");
+});
+
+function remove(id){ logs=logs.filter(l=>l.id!==id); save(); render(); }
+
+function buildGroups(){
+  const m={};
+  for(const l of logs){
+    let k = groupBy==="device"?l.device : groupBy==="filter"?l.filter
+          : groupBy==="origin"?(l.origin||"—") : groupBy==="process"?(l.process||"—")
+          : `${l.device} · ${l.filter}`;
+    (m[k]=m[k]||[]).push(l);
+  }
+  return Object.entries(m).map(([k,arr])=>{
+    const avg=arr.reduce((s,x)=>s+x.pct,0)/arr.length;
+    const avgRet=arr.reduce((s,x)=>s+x.retained,0)/arr.length;
+    const perG=arr.filter(x=>x.dose).map(x=>x.retained/x.dose);
+    const avgPerG=perG.length?perG.reduce((s,x)=>s+x,0)/perG.length:null;
+    return {k,n:arr.length,avg,avgRet,avgPerG};
+  }).sort((a,b)=>b.avg-a.avg);
+}
+
+const SEGS=[["device","Device"],["filter","Filter"],["origin","Origin"],["process","Process"],["combo","Dev+Filt"]];
+function renderSeg(){
+  $("seg").innerHTML = SEGS.map(([v,l])=>`<button data-v="${v}" class="${groupBy===v?'on':''}">${l}</button>`).join("");
+  $("seg").querySelectorAll("button").forEach(b=>b.onclick=()=>{ groupBy=b.dataset.v; render(); });
+}
+
+function render(){
+  renderSeg();
+  const avgBlock=$("avgBlock");
+  if(logs.length===0){ avgBlock.style.display="none"; }
+  else {
+    avgBlock.style.display="block";
+    $("avgList").innerHTML = buildGroups().map(g=>`
+      <div class="row">
+        <div>
+          <div class="grp-title">${g.k}</div>
+          <div class="grp-sub">${g.n} brew${g.n>1?'s':''} · avg ${g.avgRet.toFixed(1)}g held${g.avgPerG!==null?` · ${g.avgPerG.toFixed(2)} g/g dose`:''}</div>
+        </div>
+        <div class="big-pct" style="color:${retColor(g.avg)}">${g.avg.toFixed(1)}%</div>
+      </div>`).join("");
+  }
+
+  $("histHead").textContent = logs.length ? `History · ${logs.length}` : "History";
+  const area=$("histArea");
+  if(logs.length===0){
+    area.innerHTML=`<div class="empty">No brews logged yet. Weigh your water and your poured cup, and the held-back water shows up here.</div>`;
+    return;
+  }
+  area.innerHTML = `<div class="stack7">` + logs.map(l=>{
+    const meta=[l.origin,l.process].filter(Boolean).join(" · ");
+    let sub="";
+    if(meta) sub+=meta+(l.grind?" · ":"");
+    if(l.grind) sub+=l.grind+" · ";
+    sub+=`${l.water}g → ${l.final}g · ${l.retained.toFixed(1)}g held`;
+    if(l.dose) sub+=` · ${(l.retained/l.dose).toFixed(2)} g/g`;
+    if(l.tds!=null) sub+=` · ${l.tds}% TDS`;
+    if(l.ey!=null) sub+=` · ${l.ey.toFixed(1)}% EY${l.eyManual?'*':''}`;
+    if(l.note) sub+=` · ${l.note}`;
+    return `<div class="hist-row">
+      <div class="hist-pct" style="color:${retColor(l.pct)}">${l.pct.toFixed(1)}%</div>
+      <div class="hist-main">
+        <div class="hist-title">${l.device} · <span>${l.filter}</span></div>
+        <div class="hist-sub">${sub}</div>
+      </div>
+      <button class="del" data-id="${l.id}">×</button>
+    </div>`;
+  }).join("") + `</div>`;
+  area.querySelectorAll(".del").forEach(b=>b.onclick=()=>remove(Number(b.dataset.id)));
+}
+
+// ── Backup system ─────────────────────────────────────
+function downloadBackup(reason){
+  const blob=new Blob([JSON.stringify(logs,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  const stamp=new Date().toISOString().slice(0,19).replace(/[:T]/g,"-");
+  a.href=url; a.download=`retention-logs-${stamp}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+  markBackup(reason);
+}
+function markBackup(reason){
+  const t=new Date();
+  try { localStorage.setItem("retention-last-backup", t.toISOString()); } catch(e){}
+  setBackupStatus(t, reason);
+}
+function setBackupStatus(time, reason){
+  const dot=$("backupDot"), txt=$("backupText");
+  if(!time){ dot.className="dot warn"; txt.textContent="No backup yet — tap Export JSON"; return; }
+  const hhmm=time.toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
+  dot.className="dot ok";
+  txt.textContent = (reason==="auto"?"Auto-backed up ":"Backed up ")+`at ${hhmm}`;
+}
+
+$("export").onclick=()=>downloadBackup("manual");
+
+const autoBox=$("autoBackup");
+// restore toggle preference
+try { const pref=localStorage.getItem("retention-autobackup"); if(pref==="0") autoBox.checked=false; } catch(e){}
+autoBox.onchange=()=>{ try{ localStorage.setItem("retention-autobackup", autoBox.checked?"1":"0"); }catch(e){} };
+
+$("importBtn").onclick=()=>$("importFile").click();
+$("importFile").onchange=e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try {
+      const data=JSON.parse(r.result);
+      if(!Array.isArray(data)) throw new Error("not an array");
+      const existing=new Set(logs.map(l=>l.id));
+      const merged=[...logs];
+      for(const d of data){ if(!existing.has(d.id)) merged.push(d); }
+      merged.sort((a,b)=>b.id-a.id);
+      logs=merged; save(); render();
+      alert(`Imported. You now have ${logs.length} brew${logs.length>1?'s':''} logged.`);
+    } catch(err){ alert("Couldn't read that file — expected an exported retention log."); }
+  };
+  r.readAsText(file);
+  e.target.value="";
+};
+
+// ── Load with safety guard ────────────────────────────
+load();
+// Restore last-backup display
+try {
+  const lb=localStorage.getItem("retention-last-backup");
+  setBackupStatus(lb?new Date(lb):null, "manual");
+} catch(e){ setBackupStatus(null); }
+
+// If storage came back empty, offer a one-tap import so a stray empty
+// load never tempts you to re-log over a recoverable backup.
+if(logs.length===0){
+  const b=document.createElement("div");
+  b.className="banner";
+  b.innerHTML=`<b>Storage is empty.</b> If this is your first run, ignore this. If you expected history here, don't re-enter anything yet — tap <b>Import JSON</b> above and load your most recent backup file first.`;
+  document.querySelector(".wrap").insertBefore(b, document.getElementById("backupBar"));
+}
+
+render(); updateLive();
+</script>
+</body>
+</html>
