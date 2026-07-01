@@ -555,13 +555,26 @@ function render(){
 }
 
 let editingId=null;
+let mEyManual=false;
+function mRefreshEY(){
+  if(mEyManual) return; // user typed their own EY — leave it
+  const auto=calcEY($("m_final").value,$("m_tds").value,$("m_dose").value);
+  $("m_ey").value = auto===null?"":auto.toFixed(2);
+}
 function mLive(){
   const p=pct($("m_water").value,$("m_final").value);
   if(p===null){ $("m_live").textContent="Enter water and final weight"; return; }
   const held=(parseFloat($("m_water").value)-parseFloat($("m_final").value)).toFixed(1);
-  $("m_live").innerHTML=`Retained <strong>${held}g</strong> · <span style="color:${retColor(p)};font-weight:700;">${p.toFixed(1)}%</span>`;
+  let h=`Retained <strong>${held}g</strong> · <span style="color:${retColor(p)};font-weight:700;">${p.toFixed(1)}%</span>`;
+  const ey=parseFloat($("m_ey").value);
+  if(!isNaN(ey)) h+=` · <strong>${ey.toFixed(1)}%</strong> EY${mEyManual?' (manual)':' (auto)'}`;
+  $("m_live").innerHTML=h;
 }
+// TDS/dose/final recompute EY (when not manually overridden), then refresh readout
+["m_tds","m_dose","m_final"].forEach(id=>$(id).addEventListener("input",()=>{ mRefreshEY(); mLive(); }));
 ["m_water","m_final"].forEach(id=>$(id).addEventListener("input",mLive));
+// Typing directly in EY flips to manual
+$("m_ey").addEventListener("input",()=>{ mEyManual=true; mLive(); });
 function openEdit(id){
   const l=logs.find(x=>x.id===id); if(!l) return;
   editingId=id;
@@ -571,6 +584,12 @@ function openEdit(id){
   $("m_origin").value=l.origin||""; $("m_process").value=l.process||""; $("m_grind").value=l.grind||"";
   $("m_dose").value=l.dose??""; $("m_water").value=l.water; $("m_final").value=l.final;
   $("m_tds").value=l.tds??""; $("m_ey").value=l.ey??"";
+  // Treat a saved EY that doesn't match the auto-calc as a manual value, so we don't clobber it
+  mEyManual=false;
+  if(l.ey!=null){
+    const auto=calcEY(l.final,l.tds,l.dose);
+    if(l.eyManual===true || auto===null || Math.abs(auto-l.ey)>0.05) mEyManual=true;
+  }
   $("m_date").value = l.date ? new Date(l.date).toISOString().slice(0,10) : todayStr();
   $("m_note").value=l.note||"";
   mLive();
@@ -591,6 +610,7 @@ $("m_save").onclick=()=>{
   l.water=w; l.final=f; l.retained=w-f; l.pct=pct(w,f);
   l.tds=$("m_tds").value?parseFloat($("m_tds").value):null;
   l.ey=$("m_ey").value?parseFloat($("m_ey").value):null;
+  l.eyManual = (l.ey!=null) && mEyManual;
   l.date=$("m_date").value?new Date($("m_date").value+"T12:00:00").toISOString():l.date;
   l.note=$("m_note").value.trim();
   save(); render(); closeEdit();
